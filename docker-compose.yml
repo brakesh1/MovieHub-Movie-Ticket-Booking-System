@@ -1,0 +1,81 @@
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: moviehub-db
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: moviehub
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uroot",
+          "-p${MYSQL_ROOT_PASSWORD}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+    networks:
+      - moviehub
+
+
+  backend:
+    build:
+      context: ./Backend
+
+    container_name: moviehub-backend
+    restart: unless-stopped
+
+    environment:
+      DB_USER: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      DB_HOST: db
+      DB_NAME: moviehub
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    expose:
+      - "8000"
+
+    networks:
+      - moviehub
+
+
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: moviehub-frontend
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
+    ports:
+      - "80:80"
+
+    networks:
+      - moviehub
+
+
+volumes:
+  mysql_data:
+
+
+networks:
+  moviehub:
