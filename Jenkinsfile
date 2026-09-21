@@ -118,7 +118,7 @@ pipeline {
                 docker compose logs --tail=30 db || true
 
                 echo "===== FRONTEND LOGS ====="
-                docker compose logs --tail=30 frontend || true
+                docker compose logs --tail=40 frontend || true
             '''
         }
     }
